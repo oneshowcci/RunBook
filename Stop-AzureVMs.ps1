@@ -11,6 +11,7 @@
      To use an asset with a different name you can pass the asset name as a runbook input parameter or change the default value for the input parameter.
   2. An Automation credential asset called "AzureCredential" that contains the Azure AD user credential with authorization for this subscription. 
      To use an asset with a different name you can pass the asset name as a runbook input parameter or change the default value for the input parameter.
+  3. An ServiceName is required to STOP only one Service Name. ALL VMs in Service Name are affected.
 
 .PARAMETER AzureCredentialAssetName
    Optional with default of "AzureCredential".
@@ -23,7 +24,7 @@
    To use an asset with a different name you can pass the asset name as a runbook input parameter or change the default value for the input parameter.
 
 .PARAMETER ServiceName
-   Optional
+   Mandatory
    Allows you to specify the cloud service containing the VMs to stop.  
    If this parameter is included, only VMs in the specified cloud service will be stopped, otherwise all VMs in the subscription will be stopped.  
 
@@ -41,7 +42,7 @@ workflow Stop-AzureVMs
         [Parameter(Mandatory=$false)]
         [String] $AzureSubscriptionIdAssetName = 'Default Azure SubId', 
 
-        [Parameter(Mandatory=$false)] 
+        [Parameter(Mandatory=$true)] 
         [String] $ServiceName
     )
 
@@ -49,13 +50,16 @@ workflow Stop-AzureVMs
     [OutputType([String])]
 
 	# Connect to Azure and select the subscription to work against
+	Write-Output "Get Credential"
 	$Cred = Get-AutomationPSCredential -Name $AzureCredentialAssetName
 	$null = Add-AzureAccount -Credential $Cred -ErrorAction Stop
+	Write-Output "Get SubID"
 	$SubId = Get-AutomationVariable -Name $AzureSubscriptionIdAssetName
     $null = Select-AzureSubscription -SubscriptionId $SubId -ErrorAction Stop
 
 	# If there is a specific cloud service, then get all VMs in the service,
     # otherwise get all VMs in the subscription.
+	Write-Output "run"
     if ($ServiceName) 
 	{ 
 		$VMs = Get-AzureVM -ServiceName $ServiceName
