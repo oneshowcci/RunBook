@@ -36,10 +36,10 @@ workflow Stop-AzureVMs
 {   
     param (
         [Parameter(Mandatory=$false)] 
-        [String]  $AzureCredentialAssetName = 'AzureCredential',
+        [String]  $AzureCredentialAssetName = 'Default Azure Admins',
         
         [Parameter(Mandatory=$false)]
-        [String] $AzureSubscriptionIdAssetName = 'AzureSubscriptionId',
+        [String] $AzureSubscriptionIdAssetName = 'Default Azure SubId', 
 
         [Parameter(Mandatory=$false)] 
         [String] $ServiceName
@@ -60,10 +60,7 @@ workflow Stop-AzureVMs
 	{ 
 		$VMs = Get-AzureVM -ServiceName $ServiceName
 	}
-    else 
-	{ 
-		$VMs = Get-AzureVM
-	}
+
 
     # Stop each of the started VMs
     foreach ($VM in $VMs)
