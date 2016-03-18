@@ -50,7 +50,8 @@ workflow Stop-AzureVMs
     [OutputType([String])]
 
 	# Connect to Azure and select the subscription to work against
-	$Cred = Get-AutomationCredential -Name $AzureCredentialAssetName
+	#$Cred = Get-AutomationPSCredential -Name $AzureCredentialAssetName
+	$Cred = Get-AutomationPSCredential -Name 'Default Azure Admins'
 	$null = Add-AzureAccount -Credential $Cred -ErrorAction Stop
 	$SubId = Get-AutomationVariable -Name $AzureSubscriptionIdAssetName
     $null = Select-AzureSubscription -SubscriptionId $SubId -ErrorAction Stop
