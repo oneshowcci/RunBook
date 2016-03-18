@@ -50,16 +50,14 @@ workflow Stop-AzureVMs
     [OutputType([String])]
 
 	# Connect to Azure and select the subscription to work against
-	Write-Output "Get Credential"
-	$Cred = Get-AutomationPSCredential -Name $AzureCredentialAssetName
+	$Cred = Get-AutomationCredential -Name $AzureCredentialAssetName
 	$null = Add-AzureAccount -Credential $Cred -ErrorAction Stop
-	Write-Output "Get SubID"
 	$SubId = Get-AutomationVariable -Name $AzureSubscriptionIdAssetName
     $null = Select-AzureSubscription -SubscriptionId $SubId -ErrorAction Stop
 
 	# If there is a specific cloud service, then get all VMs in the service,
     # otherwise get all VMs in the subscription.
-	Write-Output "run"
+	#Write-Output "run"
     if ($ServiceName) 
 	{ 
 		$VMs = Get-AzureVM -ServiceName $ServiceName
