@@ -3,7 +3,7 @@ workflow CopyStorageBlobContainer
     Param
     (
         [Parameter(Mandatory=$false)] 
-        [String]  $AzureCredential = 'Default Azure Admins',
+        [String]  $AzureCredentialAssetName = 'Default Azure Admins',
         
         [Parameter(Mandatory=$false)]
         [String] $AzureSubscriptionIdAssetName = 'Default Azure SubId',
@@ -32,27 +32,30 @@ workflow CopyStorageBlobContainer
    	$null = Add-AzureAccount -Credential $Cred -ErrorAction Stop
     $SubId = Get-AutomationVariable -Name $AzureSubscriptionIdAssetName
     $null = Select-AzureSubscription -SubscriptionId $SubId -ErrorAction Stop
-
+	Write-Output "Auth OK"
+	Inlinescript
+	{
     #Create Context
-    $SourceStorageKey = (Get-AzureStorageKey -StorageAccountName $SourceStorageAccount).Primary
-    $DestStorageKey = (Get-AzureStorageKey -StorageAccountName $DestStorageAccount).Primary
-    $SourceStorageContext = New-AzureStorageContext –StorageAccountName $SourceStorageAccount -StorageAccountKey $SourceStorageKey
-    $DestStorageContext = New-AzureStorageContext –StorageAccountName $DestStorageAccount -StorageAccountKey $DestStorageKey
-
+    $SourceStorageKey = (Get-AzureStorageKey -StorageAccountName $Using:SourceStorageAccount).Primary
+    $DestStorageKey = (Get-AzureStorageKey -StorageAccountName $Using:DestStorageAccount).Primary
+    $SourceStorageContext = New-AzureStorageContext –StorageAccountName $using:SourceStorageAccount -StorageAccountKey $SourceStorageKey
+    $DestStorageContext = New-AzureStorageContext –StorageAccountName $using:DestStorageAccount -StorageAccountKey $DestStorageKey
+	Write-Output "Context OK"
+		
     #Get all Blob List
-    $Blobs = Get-AzureStorageBlob -Context $SourceStorageContext -Container $SourceStorageContainer
+    $Blobs = Get-AzureStorageBlob -Context $SourceStorageContext -Container $using:SourceStorageContainer
     $BlobCpyAry = @()
     $timeStamp = (get-date).ToString('ddd')
-
-    
+	
+    Write-Output "Blobs"
     foreach ($Blob in $Blobs)
     {
   
         $BlobName = $Blob.Name
         $destblobname = "$timestamp-$BlobName"
         Write-Output "Start Copy $BlobName"
-        $BlobCopy = Start-CopyAzureStorageBlob -Context $SourceStorageContext -SrcContainer $SourceStorageContainer -SrcBlob $BlobName `
-            -DestContext $DestStorageContext -DestContainer $DestStorageContainer -DestBlob $destblobname
+        $BlobCopy = Start-CopyAzureStorageBlob -Context $SourceStorageContext -SrcContainer $using:SourceStorageContainer -SrcBlob $BlobName `
+            -DestContext $DestStorageContext -DestContainer $using:DestStorageContainer -DestBlob $destblobname
         $BlobCpyAry += $BlobCopy
     }
 
@@ -61,7 +64,7 @@ workflow CopyStorageBlobContainer
     {
         $loops++
         $check = $true
-        Start-Sleep -Seconds $refresh
+        Start-Sleep -Seconds $using:refresh
         foreach ($BlobCopy in $BlobCpyAry)
         {
             $CopyState = $BlobCopy | Get-AzureStorageBlobCopyState
@@ -72,7 +75,7 @@ workflow CopyStorageBlobContainer
                 $check = $false #se anche solo 1 non ha finito loop
             }
         }
-    } until($check -or ($loops -ge $maxloops))
+    } until($check -or ($using:loops -ge $using:maxloops))
 
-
+	}
 }
